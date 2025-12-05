@@ -1,6 +1,6 @@
 [project]
 name = "chuk-mcp-solver"
-version = "0.3.3"
+version = "0.3.4"
 description = "General-purpose constraint and optimization solver MCP server"
 readme = "README.md"
 license = { text = "MIT" }
