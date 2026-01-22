@@ -25,7 +25,7 @@ ENV PATH="/root/.local/bin:${PATH}"
 COPY pyproject.toml README.md ./
 COPY src ./src
 
-# Install the package with all dependencies using full path (force fresh install)
+# Install the package with all dependencies using full path (force fresh install with 0.16.4)
 RUN /root/.local/bin/uv pip install --system --no-cache -e .
 
 # Runtime stage

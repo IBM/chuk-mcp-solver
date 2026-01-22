@@ -1482,3 +1482,14 @@ class SolveAssignmentProblemResponse(BaseModel):
         ...,
         description="Human-readable explanation",
     )
+
+
+# ============================================================================
+# Rebuild Models for Forward References
+# ============================================================================
+
+# Rebuild models with circular/forward references after all models are defined
+# This is required for ImplicationParams which contains a Constraint field,
+# creating a circular reference: Constraint → ImplicationParams → Constraint
+Constraint.model_rebuild()
+ImplicationParams.model_rebuild()
