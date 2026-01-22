@@ -44,11 +44,11 @@ def build_linear_constraint(
 
     # Add constraint based on sense
     if params.sense == ConstraintSense.LESS_EQUAL:
-        model.Add(expr <= rhs_int).WithName(constraint.id)
+        model.Add(expr <= rhs_int).WithName(constraint.id)  # type: ignore[attr-defined]
     elif params.sense == ConstraintSense.GREATER_EQUAL:
-        model.Add(expr >= rhs_int).WithName(constraint.id)
+        model.Add(expr >= rhs_int).WithName(constraint.id)  # type: ignore[attr-defined]
     else:  # EQUAL
-        model.Add(expr == rhs_int).WithName(constraint.id)
+        model.Add(expr == rhs_int).WithName(constraint.id)  # type: ignore[attr-defined]
 
 
 def build_all_different_constraint(
@@ -65,7 +65,7 @@ def build_all_different_constraint(
     """
     params: AllDifferentParams = constraint.params  # type: ignore[assignment]
     vars_list = [var_map[var_id] for var_id in params.vars]
-    model.AddAllDifferent(vars_list).WithName(constraint.id)
+    model.AddAllDifferent(vars_list).WithName(constraint.id)  # type: ignore[attr-defined]
 
 
 def build_element_constraint(
@@ -83,7 +83,7 @@ def build_element_constraint(
     params: ElementParams = constraint.params  # type: ignore[assignment]
     index_var = var_map[params.index_var]
     target_var = var_map[params.target_var]
-    model.AddElement(index_var, params.array, target_var).WithName(constraint.id)
+    model.AddElement(index_var, params.array, target_var).WithName(constraint.id)  # type: ignore[attr-defined]
 
 
 def build_table_constraint(
@@ -100,7 +100,7 @@ def build_table_constraint(
     """
     params: TableParams = constraint.params  # type: ignore[assignment]
     vars_list = [var_map[var_id] for var_id in params.vars]
-    model.AddAllowedAssignments(vars_list, params.allowed_tuples).WithName(constraint.id)
+    model.AddAllowedAssignments(vars_list, params.allowed_tuples).WithName(constraint.id)  # type: ignore[attr-defined]
 
 
 def build_implication_constraint(
@@ -141,12 +141,13 @@ def build_implication_constraint(
     rhs_int = int(linear_params.rhs)  # type: ignore[union-attr]
 
     # Add implication using OnlyEnforceIf
+    # Note: WithName() must be called before OnlyEnforceIf()
     if linear_params.sense == ConstraintSense.LESS_EQUAL:  # type: ignore[union-attr]
-        model.Add(expr <= rhs_int).OnlyEnforceIf(if_var).WithName(constraint.id)
+        model.Add(expr <= rhs_int).WithName(constraint.id).OnlyEnforceIf(if_var)  # type: ignore[attr-defined]
     elif linear_params.sense == ConstraintSense.GREATER_EQUAL:  # type: ignore[union-attr]
-        model.Add(expr >= rhs_int).OnlyEnforceIf(if_var).WithName(constraint.id)
+        model.Add(expr >= rhs_int).WithName(constraint.id).OnlyEnforceIf(if_var)  # type: ignore[attr-defined]
     else:  # EQUAL
-        model.Add(expr == rhs_int).OnlyEnforceIf(if_var).WithName(constraint.id)
+        model.Add(expr == rhs_int).WithName(constraint.id).OnlyEnforceIf(if_var)  # type: ignore[attr-defined]
 
 
 def build_cumulative_constraint(
@@ -181,13 +182,13 @@ def build_cumulative_constraint(
     # Create interval variables for cumulative constraint
     intervals = []
     for i, (start, duration) in enumerate(zip(start_vars, duration_vars, strict=True)):
-        interval = model.NewIntervalVar(
+        interval = model.NewIntervalVar(  # type: ignore[attr-defined]
             start, duration, start + duration, f"{constraint.id}_interval_{i}"
         )
         intervals.append(interval)
 
     # Add cumulative constraint
-    model.AddCumulative(intervals, demand_vars, params.capacity).WithName(constraint.id)
+    model.AddCumulative(intervals, demand_vars, params.capacity).WithName(constraint.id)  # type: ignore[attr-defined]
 
 
 def build_circuit_constraint(
@@ -210,7 +211,7 @@ def build_circuit_constraint(
         literal = var_map[var_id]
         arcs.append((from_node, to_node, literal))
 
-    model.AddCircuit(arcs).WithName(constraint.id)
+    model.AddCircuit(arcs).WithName(constraint.id)  # type: ignore[attr-defined]
 
 
 def build_reservoir_constraint(
@@ -231,7 +232,7 @@ def build_reservoir_constraint(
     time_vars = [var_map[var_id] for var_id in params.time_vars]
 
     # Add reservoir constraint
-    model.AddReservoirConstraint(
+    model.AddReservoirConstraint(  # type: ignore[attr-defined]
         time_vars,
         params.level_changes,
         params.min_level,
@@ -265,13 +266,13 @@ def build_no_overlap_constraint(
     # Create interval variables
     intervals = []
     for i, (start, duration) in enumerate(zip(start_vars, duration_vars, strict=True)):
-        interval = model.NewIntervalVar(
+        interval = model.NewIntervalVar(  # type: ignore[attr-defined]
             start, duration, start + duration, f"{constraint.id}_interval_{i}"
         )
         intervals.append(interval)
 
     # Add no-overlap constraint
-    model.AddNoOverlap(intervals).WithName(constraint.id)
+    model.AddNoOverlap(intervals).WithName(constraint.id)  # type: ignore[attr-defined]
 
 
 # Constraint builder dispatch map

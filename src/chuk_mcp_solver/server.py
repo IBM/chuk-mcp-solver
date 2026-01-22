@@ -9,16 +9,33 @@ import sys
 from chuk_mcp_server import ChukMCPServer, tool
 
 from chuk_mcp_solver.models import (
+    Agent,
+    AllocationObjective,
+    AssignmentObjective,
+    AssignmentTask,
+    BudgetConstraint,
+    Constraint,
+    Item,
+    Location,
+    Objective,
+    Resource,
+    RoutingObjective,
+    SchedulingObjective,
+    SearchConfig,
     SolveAssignmentProblemRequest,
     SolveAssignmentProblemResponse,
     SolveBudgetAllocationRequest,
     SolveBudgetAllocationResponse,
     SolveConstraintModelRequest,
     SolveConstraintModelResponse,
+    SolverMode,
     SolveRoutingProblemRequest,
     SolveRoutingProblemResponse,
     SolveSchedulingProblemRequest,
     SolveSchedulingProblemResponse,
+    Task,
+    Variable,
+    Vehicle,
 )
 from chuk_mcp_solver.providers import get_provider_for_tool
 from chuk_mcp_solver.solver.ortools.allocation import (
@@ -43,11 +60,11 @@ logger = logging.getLogger(__name__)
 
 @tool  # type: ignore[arg-type]
 async def solve_constraint_model(
-    mode: str,
-    variables: list[dict],
-    constraints: list[dict],
-    objective: dict | None = None,
-    search: dict | None = None,
+    mode: SolverMode,
+    variables: list[Variable],
+    constraints: list[Constraint],
+    objective: Objective | None = None,
+    search: SearchConfig | None = None,
 ) -> SolveConstraintModelResponse:
     """Solve a general constraint or optimization model.
 
@@ -141,16 +158,14 @@ async def solve_constraint_model(
         )
         ```
     """
-    # Construct request model from dict inputs
-    request_data = {
-        "mode": mode,
-        "variables": variables,
-        "constraints": constraints,
-        "objective": objective,
-        "search": search,
-    }
-
-    request = SolveConstraintModelRequest(**request_data)
+    # Construct request model (params are already validated Pydantic models)
+    request = SolveConstraintModelRequest(
+        mode=mode,
+        variables=variables,
+        constraints=constraints,
+        objective=objective,
+        search=search,
+    )
 
     # Get provider and solve
     provider = get_provider_for_tool("solve_constraint_model")
@@ -161,9 +176,9 @@ async def solve_constraint_model(
 
 @tool  # type: ignore[arg-type]
 async def solve_scheduling_problem(
-    tasks: list[dict],
-    resources: list[dict] | None = None,
-    objective: str = "minimize_makespan",
+    tasks: list[Task],
+    resources: list[Resource] | None = None,
+    objective: SchedulingObjective = SchedulingObjective.MINIMIZE_MAKESPAN,
     max_time_ms: int = 60000,
 ) -> SolveSchedulingProblemResponse:
     """Solve a task scheduling problem with dependencies and resource constraints.
@@ -174,19 +189,9 @@ async def solve_scheduling_problem(
     CP-SAT model.
 
     Args:
-        tasks: List of tasks with:
-            - id (str): Unique task identifier
-            - duration (int): Task duration in time units
-            - resources_required (dict, optional): {resource_id: amount} dict
-            - dependencies (list, optional): List of task IDs that must complete first
-            - earliest_start (int, optional): Release time
-            - deadline (int, optional): Due date
-            - priority (int, optional): Task priority (default 1)
-        resources: Optional list of resources with:
-            - id (str): Resource identifier
-            - capacity (int): Maximum units available at any time
-            - cost_per_unit (float, optional): Cost per unit-time
-        objective: Optimization goal - 'minimize_makespan', 'minimize_cost', or 'minimize_lateness'
+        tasks: List of Task objects to schedule (id, duration required; dependencies, resources, etc. optional)
+        resources: Optional list of Resource objects with capacity constraints
+        objective: SchedulingObjective enum (MINIMIZE_MAKESPAN, MINIMIZE_COST, or MINIMIZE_LATENESS)
         max_time_ms: Maximum solver time in milliseconds (default 60000)
 
     Returns:
@@ -234,15 +239,13 @@ async def solve_scheduling_problem(
         # Returns schedule respecting CPU capacity
         ```
     """
-    # Construct request model
-    request_data = {
-        "tasks": tasks,
-        "resources": resources or [],
-        "objective": objective,
-        "max_time_ms": max_time_ms,
-    }
-
-    request = SolveSchedulingProblemRequest(**request_data)
+    # Construct request model (params are already validated Pydantic models)
+    request = SolveSchedulingProblemRequest(
+        tasks=tasks,
+        resources=resources or [],
+        objective=objective,
+        max_time_ms=max_time_ms,
+    )
 
     # Convert to CP-SAT model
     cpsat_request = convert_scheduling_to_cpsat(request)
@@ -259,10 +262,10 @@ async def solve_scheduling_problem(
 
 @tool  # type: ignore[arg-type]
 async def solve_routing_problem(
-    locations: list[dict],
-    vehicles: list[dict] | None = None,
+    locations: list[Location],
+    vehicles: list[Vehicle] | None = None,
     distance_matrix: list[list[int]] | None = None,
-    objective: str = "minimize_distance",
+    objective: RoutingObjective = RoutingObjective.MINIMIZE_DISTANCE,
     max_time_ms: int = 60000,
 ) -> SolveRoutingProblemResponse:
     """Solve vehicle routing problems (TSP/VRP) with optimal route planning.
@@ -349,16 +352,14 @@ async def solve_routing_problem(
         )
         # Uses minimum number of trucks needed to serve all customers
     """
-    # Construct request model
-    request_data = {
-        "locations": locations,
-        "vehicles": vehicles or [],
-        "distance_matrix": distance_matrix,
-        "objective": objective,
-        "max_time_ms": max_time_ms,
-    }
-
-    request = SolveRoutingProblemRequest(**request_data)
+    # Construct request model (params are already validated Pydantic models)
+    request = SolveRoutingProblemRequest(
+        locations=locations,
+        vehicles=vehicles or [],
+        distance_matrix=distance_matrix,
+        objective=objective,
+        max_time_ms=max_time_ms,
+    )
 
     # Convert to CP-SAT model
     cpsat_request = convert_routing_to_cpsat(request)
@@ -375,9 +376,9 @@ async def solve_routing_problem(
 
 @tool  # type: ignore[arg-type]
 async def solve_budget_allocation(
-    items: list[dict],
-    budgets: list[dict],
-    objective: str = "maximize_value",
+    items: list[Item],
+    budgets: list[BudgetConstraint],
+    objective: AllocationObjective = AllocationObjective.MAXIMIZE_VALUE,
     min_value_threshold: float | None = None,
     max_cost_threshold: float | None = None,
     min_items: int | None = None,
@@ -479,19 +480,17 @@ async def solve_budget_allocation(
         )
         # Respects multiple resource constraints simultaneously
     """
-    # Construct request model
-    request_data = {
-        "items": items,
-        "budgets": budgets,
-        "objective": objective,
-        "min_value_threshold": min_value_threshold,
-        "max_cost_threshold": max_cost_threshold,
-        "min_items": min_items,
-        "max_items": max_items,
-        "max_time_ms": max_time_ms,
-    }
-
-    request = SolveBudgetAllocationRequest(**request_data)
+    # Construct request model (params are already validated Pydantic models)
+    request = SolveBudgetAllocationRequest(
+        items=items,
+        budgets=budgets,
+        objective=objective,
+        min_value_threshold=min_value_threshold,
+        max_cost_threshold=max_cost_threshold,
+        min_items=min_items,
+        max_items=max_items,
+        max_time_ms=max_time_ms,
+    )
 
     # Convert to CP-SAT model
     cpsat_request = convert_allocation_to_cpsat(request)
@@ -508,10 +507,10 @@ async def solve_budget_allocation(
 
 @tool  # type: ignore[arg-type]
 async def solve_assignment_problem(
-    agents: list[dict],
-    tasks: list[dict],
+    agents: list[Agent],
+    tasks: list[AssignmentTask],
     cost_matrix: list[list[float]] | None = None,
-    objective: str = "minimize_cost",
+    objective: AssignmentObjective = AssignmentObjective.MINIMIZE_COST,
     force_assign_all: bool = True,
     max_time_ms: int = 60000,
 ) -> SolveAssignmentProblemResponse:
@@ -606,17 +605,15 @@ async def solve_assignment_problem(
         )
         # Distributes tasks evenly across servers (5 per server)
     """
-    # Construct request model
-    request_data = {
-        "agents": agents,
-        "tasks": tasks,
-        "cost_matrix": cost_matrix,
-        "objective": objective,
-        "force_assign_all": force_assign_all,
-        "max_time_ms": max_time_ms,
-    }
-
-    request = SolveAssignmentProblemRequest(**request_data)
+    # Construct request model (params are already validated Pydantic models)
+    request = SolveAssignmentProblemRequest(
+        agents=agents,
+        tasks=tasks,
+        cost_matrix=cost_matrix,
+        objective=objective,
+        force_assign_all=force_assign_all,
+        max_time_ms=max_time_ms,
+    )
 
     # Convert to CP-SAT model
     cpsat_request = convert_assignment_to_cpsat(request)

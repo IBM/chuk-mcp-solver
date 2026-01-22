@@ -32,9 +32,9 @@ def build_objective(
     if isinstance(objective, Objective):
         expr = sum(int(term.coef) * var_map[term.var] for term in objective.terms)
         if objective.sense == ObjectiveSense.MINIMIZE:
-            model.Minimize(expr)
+            model.Minimize(expr)  # type: ignore[attr-defined]
         else:  # MAXIMIZE
-            model.Maximize(expr)
+            model.Maximize(expr)  # type: ignore[attr-defined]
         return
 
     # Handle multi-objective
@@ -55,9 +55,9 @@ def build_objective(
 
     # Use the sense of the highest priority objective
     if sorted_objectives[0].sense == ObjectiveSense.MINIMIZE:
-        model.Minimize(total_expr)
+        model.Minimize(total_expr)  # type: ignore[attr-defined]
     else:
-        model.Maximize(total_expr)
+        model.Maximize(total_expr)  # type: ignore[attr-defined]
 
 
 def configure_solver(solver: cp_model.CpSolver, request: SolveConstraintModelRequest) -> None:
@@ -91,7 +91,7 @@ def configure_solver(solver: cp_model.CpSolver, request: SolveConstraintModelReq
         # Map our strategy enum to OR-Tools parameters
         if request.search.strategy == SearchStrategy.FIRST_FAIL:
             solver.parameters.search_branching = cp_model.FIXED_SEARCH
-            solver.parameters.preferred_variable_order = cp_model.CHOOSE_FIRST  # type: ignore[assignment]
+            # Note: Variable order is determined by the order variables are added to the model
         elif request.search.strategy == SearchStrategy.RANDOM:
             solver.parameters.randomize_search = True
 
