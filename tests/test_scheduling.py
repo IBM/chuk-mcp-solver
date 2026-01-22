@@ -298,3 +298,184 @@ class TestSchedulingEdgeCases:
         assert len(response.schedule) == 1
         task_assignment = response.schedule[0]
         assert task_assignment.metadata == {"team": "backend", "priority": "high"}
+
+    async def test_with_max_makespan(self, solver):
+        """Test scheduling with max_makespan constraint."""
+        request = SolveSchedulingProblemRequest(
+            tasks=[
+                Task(id="A", duration=5),
+                Task(id="B", duration=5),
+            ],
+            max_makespan=8,  # Force some overlap
+            objective=SchedulingObjective.MINIMIZE_MAKESPAN,
+        )
+
+        cpsat_request = convert_scheduling_to_cpsat(request)
+        cpsat_response = await solver.solve_constraint_model(cpsat_request)
+        response = convert_cpsat_to_scheduling_response(cpsat_response, request)
+
+        assert response.status == SolverStatus.OPTIMAL
+        assert response.makespan <= 8
+
+    async def test_with_no_overlap_tasks(self, solver):
+        """Test scheduling with no-overlap constraint groups."""
+        request = SolveSchedulingProblemRequest(
+            tasks=[
+                Task(id="A", duration=3),
+                Task(id="B", duration=2),
+                Task(id="C", duration=1),
+            ],
+            no_overlap_tasks=[["A", "B", "C"]],  # All three can't overlap
+            objective=SchedulingObjective.MINIMIZE_MAKESPAN,
+        )
+
+        cpsat_request = convert_scheduling_to_cpsat(request)
+        cpsat_response = await solver.solve_constraint_model(cpsat_request)
+        response = convert_cpsat_to_scheduling_response(cpsat_response, request)
+
+        assert response.status == SolverStatus.OPTIMAL
+        # With no overlap, should be sequential: 3 + 2 + 1 = 6
+        assert response.makespan == 6
+
+    async def test_timeout_no_solution_handling(self):
+        """Test handling of TIMEOUT_NO_SOLUTION status."""
+        from chuk_mcp_solver.models import (
+            Explanation,
+            SolveConstraintModelResponse,
+        )
+
+        # Mock CPSAT response with TIMEOUT_NO_SOLUTION
+        cpsat_response = SolveConstraintModelResponse(
+            status=SolverStatus.TIMEOUT_NO_SOLUTION,
+            solve_time_ms=100,
+            explanation=Explanation(summary="Timeout occurred"),
+        )
+
+        request = SolveSchedulingProblemRequest(
+            tasks=[Task(id="A", duration=5)],
+            objective=SchedulingObjective.MINIMIZE_MAKESPAN,
+        )
+
+        response = convert_cpsat_to_scheduling_response(cpsat_response, request)
+
+        assert response.status == SolverStatus.TIMEOUT_NO_SOLUTION
+        assert "Timeout" in response.explanation.summary
+        assert "recommendations" in dir(response.explanation)
+
+    async def test_empty_solutions_handling(self):
+        """Test handling when cpsat_response has empty solutions list."""
+        from chuk_mcp_solver.models import SolveConstraintModelResponse
+
+        # Mock CPSAT response with FEASIBLE status but no solutions (edge case)
+        cpsat_response = SolveConstraintModelResponse(
+            status=SolverStatus.FEASIBLE,
+            solve_time_ms=50,
+            solutions=[],  # Empty solutions
+        )
+
+        request = SolveSchedulingProblemRequest(
+            tasks=[Task(id="A", duration=5)],
+            objective=SchedulingObjective.MINIMIZE_MAKESPAN,
+        )
+
+        response = convert_cpsat_to_scheduling_response(cpsat_response, request)
+
+        assert response.status == SolverStatus.FEASIBLE
+        assert response.explanation.summary == "No solution available"
+
+    async def test_makespan_calculation_fallback(self):
+        """Test makespan calculation when not in solution variables."""
+        from chuk_mcp_solver.models import Solution, SolutionVariable, SolveConstraintModelResponse
+
+        # Mock CPSAT response without 'makespan' variable
+        cpsat_response = SolveConstraintModelResponse(
+            status=SolverStatus.OPTIMAL,
+            solve_time_ms=100,
+            solutions=[
+                Solution(
+                    variables=[
+                        SolutionVariable(id="start_A", value=0.0),
+                        SolutionVariable(id="end_A", value=5.0),
+                        # No 'makespan' variable
+                    ]
+                )
+            ],
+        )
+
+        request = SolveSchedulingProblemRequest(
+            tasks=[Task(id="A", duration=5)],
+            objective=SchedulingObjective.MINIMIZE_MAKESPAN,
+        )
+
+        response = convert_cpsat_to_scheduling_response(cpsat_response, request)
+
+        assert response.status == SolverStatus.OPTIMAL
+        # Should calculate makespan from max end_time
+        assert response.makespan == 5
+
+    async def test_feasible_status_with_gap(self):
+        """Test FEASIBLE status message generation."""
+        from chuk_mcp_solver.models import (
+            Explanation,
+            Solution,
+            SolutionVariable,
+            SolveConstraintModelResponse,
+        )
+
+        # Mock CPSAT response with FEASIBLE status and gap
+        cpsat_response = SolveConstraintModelResponse(
+            status=SolverStatus.FEASIBLE,
+            solve_time_ms=100,
+            objective_value=42.0,
+            optimality_gap=15.5,
+            solutions=[
+                Solution(
+                    variables=[
+                        SolutionVariable(id="start_A", value=0.0),
+                        SolutionVariable(id="end_A", value=5.0),
+                        SolutionVariable(id="makespan", value=5.0),
+                    ]
+                )
+            ],
+            explanation=Explanation(summary="Found feasible solution"),
+        )
+
+        request = SolveSchedulingProblemRequest(
+            tasks=[Task(id="A", duration=5)],
+            objective=SchedulingObjective.MINIMIZE_MAKESPAN,
+        )
+
+        response = convert_cpsat_to_scheduling_response(cpsat_response, request)
+
+        assert response.status == SolverStatus.FEASIBLE
+        assert "feasible schedule" in response.explanation.summary
+        assert "gap: 15.50%" in response.explanation.summary
+
+    async def test_satisfied_status_message(self):
+        """Test SATISFIED status message generation."""
+        from chuk_mcp_solver.models import Solution, SolutionVariable, SolveConstraintModelResponse
+
+        # Mock CPSAT response with SATISFIED status (no optimization)
+        cpsat_response = SolveConstraintModelResponse(
+            status=SolverStatus.SATISFIED,
+            solve_time_ms=100,
+            solutions=[
+                Solution(
+                    variables=[
+                        SolutionVariable(id="start_A", value=0.0),
+                        SolutionVariable(id="end_A", value=5.0),
+                        SolutionVariable(id="makespan", value=5.0),
+                    ]
+                )
+            ],
+        )
+
+        request = SolveSchedulingProblemRequest(
+            tasks=[Task(id="A", duration=5)],
+            objective=SchedulingObjective.MINIMIZE_MAKESPAN,
+        )
+
+        response = convert_cpsat_to_scheduling_response(cpsat_response, request)
+
+        assert response.status == SolverStatus.SATISFIED
+        assert "Schedule found" in response.explanation.summary

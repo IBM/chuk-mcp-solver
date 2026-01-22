@@ -248,3 +248,170 @@ async def test_build_success_response_zero_objective_value():
     assert response.status == SolverStatus.OPTIMAL
     assert response.objective_value == 0
     assert response.optimality_gap == 0.0  # Optimal has 0 gap even with 0 value
+
+
+async def test_build_success_response_optimal_without_objective():
+    """Test OPTIMAL status without objective value (satisfy mode converted to optimize)."""
+    from unittest.mock import MagicMock
+
+    from chuk_mcp_solver.models import SolveConstraintModelRequest, Variable, VariableDomain
+    from chuk_mcp_solver.solver.ortools.responses import build_success_response
+
+    # Mock solver
+    solver = MagicMock()
+    solver.Value.return_value = 5
+
+    # Create a request without objective
+    request = SolveConstraintModelRequest(
+        mode="optimize",
+        variables=[Variable(id="x", domain=VariableDomain(type="integer", lower=0, upper=10))],
+        constraints=[],
+    )
+
+    # Mock var_map
+    var_map = {"x": MagicMock()}
+
+    response = build_success_response(SolverStatus.OPTIMAL, solver, var_map, request)
+
+    assert response.status == SolverStatus.OPTIMAL
+    assert response.objective_value is None
+    # Summary should say "Found optimal solution." without mentioning objective
+    assert response.explanation.summary == "Found optimal solution."
+
+
+async def test_build_success_response_feasible_with_zero_objective():
+    """Test FEASIBLE status with zero objective value to trigger special gap calculation."""
+    from unittest.mock import MagicMock
+
+    from chuk_mcp_solver.models import (
+        Objective,
+        SolveConstraintModelRequest,
+        Variable,
+        VariableDomain,
+    )
+    from chuk_mcp_solver.solver.ortools.responses import build_success_response
+
+    # Mock solver
+    solver = MagicMock()
+    solver.Value.return_value = 0
+    solver.ObjectiveValue.return_value = 0.0
+    solver.BestObjectiveBound.return_value = 5.0  # Best bound is 5, current is 0
+
+    # Create a request with objective
+    request = SolveConstraintModelRequest(
+        mode="optimize",
+        variables=[Variable(id="x", domain=VariableDomain(type="integer", lower=0, upper=10))],
+        constraints=[],
+        objective=Objective(sense="max", terms=[{"var": "x", "coef": 1}]),
+    )
+
+    var_map = {"x": MagicMock()}
+
+    response = build_success_response(SolverStatus.FEASIBLE, solver, var_map, request)
+
+    assert response.status == SolverStatus.FEASIBLE
+    assert response.objective_value == 0.0
+    # Gap for zero objective should be absolute difference: |5 - 0| = 5
+    assert response.optimality_gap == 5.0
+    # Summary should mention gap
+    assert "gap:" in response.explanation.summary
+
+
+async def test_build_success_response_feasible_gap_exception():
+    """Test FEASIBLE status when BestObjectiveBound() raises exception."""
+    from unittest.mock import MagicMock
+
+    from chuk_mcp_solver.models import (
+        Objective,
+        SolveConstraintModelRequest,
+        Variable,
+        VariableDomain,
+    )
+    from chuk_mcp_solver.solver.ortools.responses import build_success_response
+
+    # Mock solver
+    solver = MagicMock()
+    solver.Value.return_value = 10
+    solver.ObjectiveValue.return_value = 42.0
+    solver.BestObjectiveBound.side_effect = RuntimeError("Not available")
+
+    request = SolveConstraintModelRequest(
+        mode="optimize",
+        variables=[Variable(id="x", domain=VariableDomain(type="integer", lower=0, upper=100))],
+        constraints=[],
+        objective=Objective(sense="max", terms=[{"var": "x", "coef": 1}]),
+    )
+
+    var_map = {"x": MagicMock()}
+
+    response = build_success_response(SolverStatus.FEASIBLE, solver, var_map, request)
+
+    assert response.status == SolverStatus.FEASIBLE
+    assert response.objective_value == 42.0
+    # Gap should be None when exception occurs
+    assert response.optimality_gap is None
+    # Summary should say "may not be optimal" (not "gap:")
+    assert "may not be optimal" in response.explanation.summary
+    assert "gap:" not in response.explanation.summary
+
+
+async def test_build_success_response_feasible_without_objective():
+    """Test FEASIBLE status without objective value."""
+    from unittest.mock import MagicMock
+
+    from chuk_mcp_solver.models import SolveConstraintModelRequest, Variable, VariableDomain
+    from chuk_mcp_solver.solver.ortools.responses import build_success_response
+
+    solver = MagicMock()
+    solver.Value.return_value = 5
+
+    request = SolveConstraintModelRequest(
+        mode="optimize",
+        variables=[Variable(id="x", domain=VariableDomain(type="integer", lower=0, upper=10))],
+        constraints=[],
+    )
+
+    var_map = {"x": MagicMock()}
+
+    response = build_success_response(SolverStatus.FEASIBLE, solver, var_map, request)
+
+    assert response.status == SolverStatus.FEASIBLE
+    assert response.objective_value is None
+    # Summary should say "Found feasible solution (may not be optimal)."
+    assert response.explanation.summary == "Found feasible solution (may not be optimal)."
+
+
+async def test_build_success_response_timeout_best_with_positive_gap():
+    """Test TIMEOUT_BEST with positive optimality gap."""
+    from unittest.mock import MagicMock
+
+    from chuk_mcp_solver.models import (
+        Objective,
+        SolveConstraintModelRequest,
+        Variable,
+        VariableDomain,
+    )
+    from chuk_mcp_solver.solver.ortools.responses import build_success_response
+
+    solver = MagicMock()
+    solver.Value.return_value = 80
+    solver.ObjectiveValue.return_value = 80.0
+    solver.BestObjectiveBound.return_value = 100.0  # 20% gap
+
+    request = SolveConstraintModelRequest(
+        mode="optimize",
+        variables=[Variable(id="x", domain=VariableDomain(type="integer", lower=0, upper=100))],
+        constraints=[],
+        objective=Objective(sense="max", terms=[{"var": "x", "coef": 1}]),
+    )
+
+    var_map = {"x": MagicMock()}
+
+    response = build_success_response(SolverStatus.TIMEOUT_BEST, solver, var_map, request)
+
+    assert response.status == SolverStatus.TIMEOUT_BEST
+    assert response.objective_value == 80.0
+    # Gap = 100 * |100-80| / |80| = 25%
+    assert response.optimality_gap == 25.0
+    # Summary should mention gap
+    assert "gap: 25.00%" in response.explanation.summary

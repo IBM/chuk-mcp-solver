@@ -108,7 +108,7 @@ class ORToolsSolver(SolverProvider):
                 if request.search and request.search.warm_start_solution:
                     for var_id, value in request.search.warm_start_solution.items():
                         if var_id in var_map:
-                            model.AddHint(var_map[var_id], value)
+                            model.AddHint(var_map[var_id], value)  # type: ignore[attr-defined]
 
                 # Track solve time
                 start_time = time.time()
@@ -248,9 +248,9 @@ class ORToolsSolver(SolverProvider):
         for var_def in request.variables:
             if var_def.domain.type == VariableDomainType.BOOL:
                 # Boolean variables are [0, 1] integer variables
-                cp_var = model.NewIntVar(0, 1, var_def.id)
+                cp_var = model.NewIntVar(0, 1, var_def.id)  # type: ignore[attr-defined]
             else:  # INTEGER
-                cp_var = model.NewIntVar(var_def.domain.lower, var_def.domain.upper, var_def.id)
+                cp_var = model.NewIntVar(var_def.domain.lower, var_def.domain.upper, var_def.id)  # type: ignore[attr-defined]
 
             var_map[var_def.id] = cp_var
 
