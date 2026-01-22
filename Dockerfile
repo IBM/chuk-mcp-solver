@@ -16,17 +16,17 @@ RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# Install uv for fast dependency management
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+# Install uv for fast dependency management (fixed path)
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
+    echo "uv installed to /root/.local/bin"
 ENV PATH="/root/.local/bin:${PATH}"
 
 # Copy project configuration
 COPY pyproject.toml README.md ./
 COPY src ./src
 
-# Install the package with all dependencies
-# Use --no-cache to reduce layer size
-RUN uv pip install --system --no-cache -e .
+# Install the package with all dependencies using full path
+RUN /root/.local/bin/uv pip install --system -e .
 
 # Runtime stage
 FROM python:3.11-slim
