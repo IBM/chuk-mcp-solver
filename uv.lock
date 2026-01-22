@@ -89,7 +89,7 @@ wheels = [
 
 [[package]]
 name = "chuk-mcp-solver"
-version = "0.5.1"
+version = "0.5.2"
 source = { editable = "." }
 dependencies = [
     { name = "chuk-mcp-server" },

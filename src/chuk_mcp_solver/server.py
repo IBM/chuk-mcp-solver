@@ -14,27 +14,21 @@ from chuk_mcp_solver.models import (
     AssignmentObjective,
     AssignmentTask,
     BudgetConstraint,
-    Constraint,
     Item,
     Location,
-    Objective,
     Resource,
     RoutingObjective,
     SchedulingObjective,
-    SearchConfig,
     SolveAssignmentProblemRequest,
     SolveAssignmentProblemResponse,
     SolveBudgetAllocationRequest,
     SolveBudgetAllocationResponse,
     SolveConstraintModelRequest,
-    SolveConstraintModelResponse,
-    SolverMode,
     SolveRoutingProblemRequest,
     SolveRoutingProblemResponse,
     SolveSchedulingProblemRequest,
     SolveSchedulingProblemResponse,
     Task,
-    Variable,
     Vehicle,
 )
 from chuk_mcp_solver.providers import get_provider_for_tool
@@ -60,12 +54,12 @@ logger = logging.getLogger(__name__)
 
 @tool  # type: ignore[arg-type]
 async def solve_constraint_model(
-    mode: SolverMode,
-    variables: list[Variable],
-    constraints: list[Constraint],
-    objective: Objective | None = None,
-    search: SearchConfig | None = None,
-) -> SolveConstraintModelResponse:
+    mode: str,
+    variables: list[dict],
+    constraints: list[dict],
+    objective: dict | None = None,
+    search: dict | None = None,
+) -> dict:
     """Solve a general constraint or optimization model.
 
     This tool solves discrete optimization and constraint satisfaction problems.
@@ -158,20 +152,21 @@ async def solve_constraint_model(
         )
         ```
     """
-    # Construct request model (params are already validated Pydantic models)
+    # Construct request model from dict params (Pydantic will validate)
     request = SolveConstraintModelRequest(
-        mode=mode,
-        variables=variables,
-        constraints=constraints,
-        objective=objective,
-        search=search,
+        mode=mode,  # type: ignore[arg-type]
+        variables=variables,  # type: ignore[arg-type]
+        constraints=constraints,  # type: ignore[arg-type]
+        objective=objective,  # type: ignore[arg-type]
+        search=search,  # type: ignore[arg-type]
     )
 
     # Get provider and solve
     provider = get_provider_for_tool("solve_constraint_model")
     response = await provider.solve_constraint_model(request)
 
-    return response
+    # Convert response to dict for MCP (mode='json' ensures enums are strings)
+    return response.model_dump(mode="json")
 
 
 @tool  # type: ignore[arg-type]

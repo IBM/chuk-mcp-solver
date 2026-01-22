@@ -31,12 +31,12 @@ class TestConstraintModelTool:
             ],
         )
 
-        assert response.status in ("optimal", "feasible", "satisfied")
-        assert len(response.solutions) > 0
+        assert response["status"] in ("optimal", "feasible", "satisfied")
+        assert len(response["solutions"]) > 0
         # Verify x + y = 10
-        sol = response.solutions[0]
-        x_val = next(v.value for v in sol.variables if v.id == "x")
-        y_val = next(v.value for v in sol.variables if v.id == "y")
+        sol = response["solutions"][0]
+        x_val = next(v["value"] for v in sol["variables"] if v["id"] == "x")
+        y_val = next(v["value"] for v in sol["variables"] if v["id"] == "y")
         assert x_val + y_val == 10
 
     async def test_solve_constraint_model_with_objective(self):
@@ -52,9 +52,9 @@ class TestConstraintModelTool:
             objective={"sense": "max", "terms": [{"var": "x", "coef": 1}]},
         )
 
-        assert response.status == "optimal"
-        sol = response.solutions[0]
-        x_val = next(v.value for v in sol.variables if v.id == "x")
+        assert response["status"] == "optimal"
+        sol = response["solutions"][0]
+        x_val = next(v["value"] for v in sol["variables"] if v["id"] == "x")
         assert x_val == 100  # Should maximize to upper bound
 
     async def test_solve_constraint_model_with_search_config(self):
@@ -74,5 +74,5 @@ class TestConstraintModelTool:
             },
         )
 
-        assert response.status in ("optimal", "feasible", "satisfied")
-        assert response.solve_time_ms <= 1000 + 100  # Allow 100ms tolerance
+        assert response["status"] in ("optimal", "feasible", "satisfied")
+        assert response["solve_time_ms"] <= 1000 + 100  # Allow 100ms tolerance
