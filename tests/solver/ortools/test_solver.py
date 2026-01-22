@@ -323,7 +323,13 @@ async def test_search_config_timeout():
     response = await solver.solve_constraint_model(request)
 
     # Should complete quickly, status may be optimal or timeout depending on speed
-    assert response.status in (SolverStatus.OPTIMAL, SolverStatus.TIMEOUT, SolverStatus.FEASIBLE)
+    assert response.status in (
+        SolverStatus.OPTIMAL,
+        SolverStatus.TIMEOUT,
+        SolverStatus.FEASIBLE,
+        SolverStatus.TIMEOUT_NO_SOLUTION,
+        SolverStatus.TIMEOUT_BEST,
+    )
 
 
 # ============================================================================
