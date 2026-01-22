@@ -456,21 +456,22 @@ def test_implication_undefined_variable():
         ],
         constraints=[
             Constraint(
+                id="c2",
+                kind=ConstraintKind.LINEAR,
+                params=LinearConstraintParams(
+                    terms=[LinearTerm(var="x", coef=1)],
+                    sense="<=",
+                    rhs=5,
+                ),
+            ),
+            Constraint(
                 id="c1",
                 kind=ConstraintKind.IMPLICATION,
                 params=ImplicationParams(
                     if_var="b",  # Undefined
-                    then=Constraint(
-                        id="c2",
-                        kind=ConstraintKind.LINEAR,
-                        params=LinearConstraintParams(
-                            terms=[LinearTerm(var="x", coef=1)],
-                            sense="<=",
-                            rhs=5,
-                        ),
-                    ),
+                    then_constraint_id="c2",  # Reference to constraint c2
                 ),
-            )
+            ),
         ],
     )
 

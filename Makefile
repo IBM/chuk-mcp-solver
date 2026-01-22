@@ -93,62 +93,37 @@ dev-install:
 # Run tests
 test:
 	@echo "Running tests..."
-	@uv run pytest
+	@python -m pytest
 
 # Show current coverage report
 coverage-report:
 	@echo "Coverage Report:"
 	@echo "================"
-	@if command -v uv >/dev/null 2>&1; then \
-		uv run coverage report --omit="tests/*" || echo "No coverage data found. Run 'make test-cov' first."; \
-	else \
-		coverage report --omit="tests/*" || echo "No coverage data found. Run 'make test-cov' first."; \
-	fi
+	@python -m coverage report --omit="tests/*" || echo "No coverage data found. Run 'make test-cov' first."
 
 # Run tests with coverage
 test-cov coverage:
 	@echo "Running tests with coverage..."
-	@if command -v uv >/dev/null 2>&1; then \
-		uv run pytest --cov=src --cov-report=html --cov-report=term --cov-report=term-missing:skip-covered; \
-		exit_code=$$?; \
-		echo ""; \
-		echo "=========================="; \
-		echo "Coverage Summary:"; \
-		echo "=========================="; \
-		uv run coverage report --omit="tests/*" | tail -5; \
-		echo ""; \
-		echo "HTML coverage report saved to: htmlcov/index.html"; \
-		exit $$exit_code; \
-	else \
-		pytest --cov=src --cov-report=html --cov-report=term --cov-report=term-missing:skip-covered; \
-		exit_code=$$?; \
-		echo ""; \
-		echo "=========================="; \
-		echo "Coverage Summary:"; \
-		echo "=========================="; \
-		coverage report --omit="tests/*" | tail -5; \
-		echo ""; \
-		echo "HTML coverage report saved to: htmlcov/index.html"; \
-		exit $$exit_code; \
-	fi
+	@python -m pytest --cov=src --cov-report=html --cov-report=term --cov-report=term-missing:skip-covered; \
+	exit_code=$$?; \
+	echo ""; \
+	echo "=========================="; \
+	echo "Coverage Summary:"; \
+	echo "=========================="; \
+	python -m coverage report --omit="tests/*" | tail -5; \
+	echo ""; \
+	echo "HTML coverage report saved to: htmlcov/index.html"; \
+	exit $$exit_code
 
 # Run the MCP server
 run:
 	@echo "Running CHUK MCP Solver server..."
-	@if command -v uv >/dev/null 2>&1; then \
-		PYTHONPATH=src uv run python -m chuk_mcp_solver.server; \
-	else \
-		PYTHONPATH=src python3 -m chuk_mcp_solver.server; \
-	fi
+	@PYTHONPATH=src python -m chuk_mcp_solver.server
 
 # Build the project using the pyproject.toml configuration
 build: clean-build
 	@echo "Building project..."
-	@if command -v uv >/dev/null 2>&1; then \
-		uv build; \
-	else \
-		python3 -m build; \
-	fi
+	@python -m build
 	@echo "Build complete. Distributions are in the 'dist' folder."
 
 # ============================================================================
@@ -278,11 +253,7 @@ publish-test: build
 	@version=$$(grep '^version = ' pyproject.toml | cut -d'"' -f2); \
 	echo "Version: $$version"; \
 	echo ""; \
-	if command -v uv >/dev/null 2>&1; then \
-		uv run twine upload --repository testpypi dist/*; \
-	else \
-		python3 -m twine upload --repository testpypi dist/*; \
-	fi; \
+	python -m twine upload --repository testpypi dist/*; \
 	echo ""; \
 	echo "✓ Uploaded to TestPyPI!"; \
 	echo ""; \
@@ -342,17 +313,9 @@ publish-manual: build
 	echo ""; \
 	echo "Uploading to PyPI..."; \
 	if [ -n "$$PYPI_TOKEN" ]; then \
-		if command -v uv >/dev/null 2>&1; then \
-			uv run twine upload --username __token__ --password "$$PYPI_TOKEN" dist/*; \
-		else \
-			python3 -m twine upload --username __token__ --password "$$PYPI_TOKEN" dist/*; \
-		fi; \
+		python -m twine upload --username __token__ --password "$$PYPI_TOKEN" dist/*; \
 	else \
-		if command -v uv >/dev/null 2>&1; then \
-			uv run twine upload dist/*; \
-		else \
-			python3 -m twine upload dist/*; \
-		fi; \
+		python -m twine upload dist/*; \
 	fi; \
 	echo ""; \
 	echo "✓ Published to PyPI!"; \
@@ -365,24 +328,24 @@ publish-manual: build
 # Check code quality
 lint:
 	@echo "Running linters..."
-	@uv run ruff check .
-	@uv run ruff format --check .
+	@ruff check .
+	@ruff format --check .
 
 # Fix code formatting
 format:
 	@echo "Formatting code..."
-	@uv run ruff format .
-	@uv run ruff check --fix .
+	@ruff format .
+	@ruff check --fix .
 
 # Type checking
 typecheck:
 	@echo "Running type checker..."
-	@uv run mypy src
+	@mypy src
 
 # Security checks
 security:
 	@echo "Running security checks..."
-	@uv run bandit -r src -ll
+	@bandit -r src -ll
 
 # Run all checks
 check: lint typecheck security test

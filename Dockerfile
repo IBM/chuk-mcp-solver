@@ -74,7 +74,7 @@ EXPOSE 8000
 # Labels for metadata
 LABEL maintainer="info@chuk.ai" \
       description="CHUK MCP Solver - General-purpose constraint and optimization solver" \
-      version="0.1.1" \
+      version="0.5.0" \
       org.opencontainers.image.source="https://github.com/chuk-ai/chuk-mcp-solver" \
       org.opencontainers.image.title="CHUK MCP Solver" \
       org.opencontainers.image.description="MCP server for constraint satisfaction and optimization using OR-Tools" \

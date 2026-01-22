@@ -1,7 +1,6 @@
 """Tests for high-level routing problem solving."""
 
 import pytest
-
 from chuk_mcp_solver.models import (
     Location,
     RoutingObjective,

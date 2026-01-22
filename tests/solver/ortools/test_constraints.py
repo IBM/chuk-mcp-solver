@@ -1,7 +1,6 @@
 """Tests for advanced constraint types (cumulative, circuit, reservoir, no-overlap)."""
 
 import pytest
-
 from chuk_mcp_solver.models import (
     CircuitParams,
     Constraint,

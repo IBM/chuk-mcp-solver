@@ -1,7 +1,6 @@
 """Tests for enhanced status codes and performance metrics."""
 
 import pytest
-
 from chuk_mcp_solver.models import (
     Constraint,
     LinearConstraintParams,

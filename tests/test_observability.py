@@ -1,7 +1,6 @@
 """Tests for observability and metrics tracking."""
 
 import pytest
-
 from chuk_mcp_solver.observability import (
     SolveOutcome,
     SolverMetrics,

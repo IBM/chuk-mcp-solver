@@ -107,33 +107,45 @@ def build_implication_constraint(
     model: cp_model.CpModel,
     constraint: Constraint,
     var_map: dict[str, cp_model.IntVar],
+    constraints_map: dict[str, Constraint] | None = None,
 ) -> None:
-    """Build an implication constraint: if bool_var then nested_constraint.
+    """Build an implication constraint: if bool_var then referenced_constraint.
 
     Args:
         model: The CP-SAT model.
         constraint: The constraint definition.
         var_map: Mapping from variable ID to CP-SAT variable.
+        constraints_map: Mapping from constraint ID to Constraint object (required for lookups).
 
     Raises:
-        ValueError: If the nested constraint is not a linear constraint.
+        ValueError: If the referenced constraint is not found or not a linear constraint.
     """
     params: ImplicationParams = constraint.params  # type: ignore[assignment]
 
     # Get the boolean variable
     if_var = var_map[params.if_var]
 
-    # For now, only support linear constraints in the "then" part
-    if params.then.kind != ConstraintKind.LINEAR:
+    # Look up the referenced constraint
+    if constraints_map is None:
+        raise ValueError("constraints_map is required for implication constraints")
+
+    then_constraint = constraints_map.get(params.then_constraint_id)
+    if then_constraint is None:
         raise ValueError(
-            f"Implication only supports linear constraints in 'then' part, got: {params.then.kind}"
+            f"Referenced constraint '{params.then_constraint_id}' not found in constraints list"
         )
 
-    # For nested constraint, params.then.params might be a dict
-    if isinstance(params.then.params, dict):
-        linear_params = LinearConstraintParams(**params.then.params)
+    # For now, only support linear constraints in the "then" part
+    if then_constraint.kind != ConstraintKind.LINEAR:
+        raise ValueError(
+            f"Implication only supports linear constraints in 'then' part, got: {then_constraint.kind}"
+        )
+
+    # For nested constraint, then_constraint.params might be a dict
+    if isinstance(then_constraint.params, dict):
+        linear_params = LinearConstraintParams(**then_constraint.params)
     else:
-        linear_params = params.then.params  # type: ignore[assignment]
+        linear_params = then_constraint.params  # type: ignore[assignment]
 
     expr = sum(int(term.coef) * var_map[term.var] for term in linear_params.terms)  # type: ignore[union-attr,misc]
 
@@ -293,6 +305,7 @@ def build_constraint(
     model: cp_model.CpModel,
     constraint: Constraint,
     var_map: dict[str, cp_model.IntVar],
+    constraints_map: dict[str, Constraint] | None = None,
 ) -> None:
     """Build a single constraint using the appropriate builder.
 
@@ -300,6 +313,7 @@ def build_constraint(
         model: The CP-SAT model.
         constraint: The constraint definition.
         var_map: Mapping from variable ID to CP-SAT variable.
+        constraints_map: Optional mapping from constraint ID to Constraint (required for implications).
 
     Raises:
         ValueError: If constraint kind is not supported.
@@ -308,4 +322,8 @@ def build_constraint(
     if builder is None:
         raise ValueError(f"Unsupported constraint kind: {constraint.kind}")
 
-    builder(model, constraint, var_map)
+    # Pass constraints_map only for implication constraints
+    if constraint.kind == ConstraintKind.IMPLICATION:
+        builder(model, constraint, var_map, constraints_map)  # type: ignore[operator]
+    else:
+        builder(model, constraint, var_map)  # type: ignore[operator]
