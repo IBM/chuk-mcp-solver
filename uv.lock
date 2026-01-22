@@ -66,7 +66,7 @@ wheels = [
 
 [[package]]
 name = "chuk-mcp-server"
-version = "0.16.2"
+version = "0.16.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "chuk-mcp" },
@@ -82,14 +82,14 @@ dependencies = [
     { name = "uvicorn" },
     { name = "uvloop", marker = "sys_platform != 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/30/b0/a21660f1930b3b2e7845795a6ea439629590c25f994ec7be3415f2be9020/chuk_mcp_server-0.16.2.tar.gz", hash = "sha256:42b629ce4cd2010b2fb6358a3e8f5a9d2b38d4bdbf82ed055889ae4668c44e2a", size = 551868, upload-time = "2026-01-22T12:21:11.449Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/22/12/6881a7d1de4dfd563b1bbe5c026a601e3e75c2809576e00545c78f5bca0b/chuk_mcp_server-0.16.3.tar.gz", hash = "sha256:006458d24f0b93a2c3c75a9918b5107c64f0bd2c26d67c3a7278710db6993534", size = 551829, upload-time = "2026-01-22T12:39:23.962Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/8a/98/b86a6d90f1e0ab33835ff780c03c2e8bb42b2b221c44bf089c8e852fc82e/chuk_mcp_server-0.16.2-py3-none-any.whl", hash = "sha256:0a6505d9c01995647acab33669e277d1ea6960433ed252700ed4ec5849ca01f9", size = 142910, upload-time = "2026-01-22T12:21:09.781Z" },
+    { url = "https://files.pythonhosted.org/packages/aa/1a/520220c4d8d93736ad81c3ca4d0709a6657075dab4ad78c72b4e0429af52/chuk_mcp_server-0.16.3-py3-none-any.whl", hash = "sha256:a4cb84c7110575c06bf56304f9e5d3250cd2f3c3835a5fac7977ccadfc184e6e", size = 142912, upload-time = "2026-01-22T12:39:21.089Z" },
 ]
 
 [[package]]
 name = "chuk-mcp-solver"
-version = "0.4.1"
+version = "0.4.3"
 source = { editable = "." }
 dependencies = [
     { name = "chuk-mcp-server" },
@@ -111,7 +111,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "chuk-mcp-server", specifier = ">=0.16.2" },
+    { name = "chuk-mcp-server", specifier = ">=0.16.3" },
     { name = "httpx", specifier = ">=0.27.0" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.8.0" },
     { name = "ortools", specifier = ">=9.10.0" },
