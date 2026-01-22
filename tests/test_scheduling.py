@@ -1,6 +1,7 @@
 """Tests for high-level scheduling problem solving."""
 
 import pytest
+
 from chuk_mcp_solver.models import (
     Resource,
     SchedulingObjective,

@@ -1,6 +1,7 @@
 """Tests for high-level assignment solving."""
 
 import pytest
+
 from chuk_mcp_solver.models import (
     Agent,
     AssignmentObjective,

@@ -1,6 +1,7 @@
 """Tests for Phase 3 performance features."""
 
 import pytest
+
 from chuk_mcp_solver.cache import clear_global_cache
 from chuk_mcp_solver.models import (
     Constraint,

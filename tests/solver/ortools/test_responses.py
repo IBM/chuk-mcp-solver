@@ -1,9 +1,10 @@
 """Tests for solver status conversion and edge cases."""
 
+from ortools.sat.python import cp_model
+
 from chuk_mcp_solver.models import SolverMode, SolverStatus
 from chuk_mcp_solver.solver.ortools import ORToolsSolver as ORToolsProvider
 from chuk_mcp_solver.solver.ortools.responses import build_failure_response
-from ortools.sat.python import cp_model
 
 
 def test_status_conversion_model_invalid():

@@ -1,6 +1,7 @@
 """Tests for OR-Tools solver implementation."""
 
 import pytest
+
 from chuk_mcp_solver.models import SolveConstraintModelRequest, SolverStatus
 from chuk_mcp_solver.solver.ortools import ORToolsSolver
 

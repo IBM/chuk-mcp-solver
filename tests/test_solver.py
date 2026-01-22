@@ -1,6 +1,7 @@
 """Tests for solver factory and interface."""
 
 import pytest
+
 from chuk_mcp_solver.solver import ORToolsSolver, SolverProvider, get_solver
 
 

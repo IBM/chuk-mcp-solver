@@ -1,6 +1,8 @@
 """Tests for Pydantic models and enums."""
 
 import pytest
+from pydantic import ValidationError
+
 from chuk_mcp_solver.models import (
     AllDifferentParams,
     BindingConstraint,
@@ -26,7 +28,6 @@ from chuk_mcp_solver.models import (
     VariableDomain,
     VariableDomainType,
 )
-from pydantic import ValidationError
 
 # ============================================================================
 # Enum Tests

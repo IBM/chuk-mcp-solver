@@ -93,7 +93,7 @@ dev-install:
 # Run tests
 test:
 	@echo "Running tests..."
-	@python -m pytest
+	@uv run pytest tests/ -v --tb=short -m "not network"
 
 # Show current coverage report
 coverage-report:
@@ -104,13 +104,13 @@ coverage-report:
 # Run tests with coverage
 test-cov coverage:
 	@echo "Running tests with coverage..."
-	@python -m pytest --cov=src --cov-report=html --cov-report=term --cov-report=term-missing:skip-covered; \
+	@uv run pytest tests/ --cov=src/chuk_mcp_solver --cov-report=xml --cov-report=html --cov-report=term --cov-fail-under=90 -m "not network"; \
 	exit_code=$$?; \
 	echo ""; \
 	echo "=========================="; \
 	echo "Coverage Summary:"; \
 	echo "=========================="; \
-	python -m coverage report --omit="tests/*" | tail -5; \
+	uv run coverage report --omit="tests/*" | tail -5; \
 	echo ""; \
 	echo "HTML coverage report saved to: htmlcov/index.html"; \
 	exit $$exit_code
@@ -328,24 +328,24 @@ publish-manual: build
 # Check code quality
 lint:
 	@echo "Running linters..."
-	@ruff check .
-	@ruff format --check .
+	@uv run ruff check src/ tests/
+	@uv run ruff format --check src/ tests/
 
 # Fix code formatting
 format:
 	@echo "Formatting code..."
-	@ruff format .
-	@ruff check --fix .
+	@uv run ruff format src/ tests/
+	@uv run ruff check --fix src/ tests/
 
 # Type checking
 typecheck:
 	@echo "Running type checker..."
-	@mypy src
+	@uv run mypy src/
 
 # Security checks
 security:
 	@echo "Running security checks..."
-	@bandit -r src -ll
+	@bandit -r src/ -ll
 
 # Run all checks
 check: lint typecheck security test

@@ -1,6 +1,7 @@
 """Tests for high-level budget allocation solving."""
 
 import pytest
+
 from chuk_mcp_solver.models import (
     AllocationObjective,
     BudgetConstraint,
