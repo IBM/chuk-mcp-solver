@@ -224,3 +224,67 @@ async def test_fractional_rhs_rounds_to_int():
     # rhs 5.9 should round to 5
     assert response.status == SolverStatus.SATISFIED
     assert response.solutions[0].variables[0].value <= 5
+
+
+@pytest.mark.asyncio
+async def test_duplicate_vars_in_objective_auto_merged():
+    """Test that duplicate variables in objective are automatically merged."""
+    request = SolveConstraintModelRequest(
+        mode="optimize",
+        variables=[
+            {"id": "x", "domain": {"type": "integer", "lower": 0, "upper": 10}},
+            {"id": "y", "domain": {"type": "integer", "lower": 0, "upper": 10}},
+        ],
+        constraints=[],
+        objective={
+            "sense": "max",
+            "terms": [
+                {"var": "x", "coef": 3},
+                {"var": "y", "coef": 2},
+                {"var": "x", "coef": 5},  # Duplicate! Should merge with first x
+            ],
+        },
+    )
+
+    provider = ORToolsProvider()
+    response = await provider.solve_constraint_model(request)
+
+    # Objective should be: max 8*x + 2*y (3+5=8 for x)
+    # So optimal is x=10, y=10
+    assert response.status == SolverStatus.OPTIMAL
+    assert response.objective_value == 8 * 10 + 2 * 10
+
+
+@pytest.mark.asyncio
+async def test_duplicate_vars_in_constraint_auto_merged():
+    """Test that duplicate variables in constraint terms are automatically merged."""
+    request = SolveConstraintModelRequest(
+        mode="satisfy",
+        variables=[
+            {"id": "x", "domain": {"type": "integer", "lower": 0, "upper": 10}},
+            {"id": "y", "domain": {"type": "integer", "lower": 0, "upper": 10}},
+        ],
+        constraints=[
+            {
+                "id": "c1",
+                "kind": "linear",
+                "params": {
+                    "terms": [
+                        {"var": "x", "coef": 2},
+                        {"var": "y", "coef": 1},
+                        {"var": "x", "coef": 3},  # Duplicate! Should merge to 5*x
+                    ],
+                    "sense": "<=",
+                    "rhs": 30,
+                },
+            }
+        ],
+    )
+
+    provider = ORToolsProvider()
+    response = await provider.solve_constraint_model(request)
+
+    # Constraint should be: 5*x + y <= 30
+    assert response.status == SolverStatus.SATISFIED
+    values = {var.id: var.value for var in response.solutions[0].variables}
+    assert 5 * values["x"] + values["y"] <= 30

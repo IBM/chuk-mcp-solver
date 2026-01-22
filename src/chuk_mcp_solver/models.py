@@ -6,10 +6,13 @@ No magic strings - all constants are defined as enums or module-level constants.
 
 from __future__ import annotations
 
+import logging
 from enum import Enum
 from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
+
+logger = logging.getLogger(__name__)
 
 # ============================================================================
 # Constants
@@ -178,6 +181,41 @@ class LinearConstraintParams(BaseModel):
         ...,
         description="Right-hand side constant value",
     )
+
+    @field_validator("terms")
+    @classmethod
+    def validate_no_duplicate_vars(cls, v: list[LinearTerm]) -> list[LinearTerm]:
+        """Validate that each variable appears at most once in the terms list.
+
+        If duplicates are found, automatically merge them by summing coefficients.
+        Logs a warning to inform the user about the automatic correction.
+        """
+        var_to_coef: dict[str, float] = {}
+        duplicates_found: dict[str, list[float]] = {}
+
+        for term in v:
+            if term.var in var_to_coef:
+                # Track duplicates for logging
+                if term.var not in duplicates_found:
+                    duplicates_found[term.var] = [var_to_coef[term.var]]
+                duplicates_found[term.var].append(term.coef)
+                # Merge duplicate by summing coefficients
+                var_to_coef[term.var] += term.coef
+            else:
+                var_to_coef[term.var] = term.coef
+
+        # Log warnings for duplicates
+        if duplicates_found:
+            for var, coefs in duplicates_found.items():
+                merged_coef = sum(coefs)
+                logger.warning(
+                    f"Linear constraint has duplicate variable '{var}' with coefficients {coefs}. "
+                    f"Automatically merged to single term with coefficient {merged_coef}."
+                )
+
+        # Rebuild terms list without duplicates
+        merged_terms = [LinearTerm(var=var, coef=coef) for var, coef in var_to_coef.items()]
+        return merged_terms
 
 
 class AllDifferentParams(BaseModel):
@@ -393,6 +431,41 @@ class Objective(BaseModel):
         default=None,
         description="Optional explanation/label for the objective",
     )
+
+    @field_validator("terms")
+    @classmethod
+    def validate_no_duplicate_vars(cls, v: list[LinearTerm]) -> list[LinearTerm]:
+        """Validate that each variable appears at most once in the terms list.
+
+        If duplicates are found, automatically merge them by summing coefficients.
+        Logs a warning to inform the user about the automatic correction.
+        """
+        var_to_coef: dict[str, float] = {}
+        duplicates_found: dict[str, list[float]] = {}
+
+        for term in v:
+            if term.var in var_to_coef:
+                # Track duplicates for logging
+                if term.var not in duplicates_found:
+                    duplicates_found[term.var] = [var_to_coef[term.var]]
+                duplicates_found[term.var].append(term.coef)
+                # Merge duplicate by summing coefficients
+                var_to_coef[term.var] += term.coef
+            else:
+                var_to_coef[term.var] = term.coef
+
+        # Log warnings for duplicates
+        if duplicates_found:
+            for var, coefs in duplicates_found.items():
+                merged_coef = sum(coefs)
+                logger.warning(
+                    f"Objective function has duplicate variable '{var}' with coefficients {coefs}. "
+                    f"Automatically merged to single term with coefficient {merged_coef}."
+                )
+
+        # Rebuild terms list without duplicates
+        merged_terms = [LinearTerm(var=var, coef=coef) for var, coef in var_to_coef.items()]
+        return merged_terms
 
 
 # ============================================================================
