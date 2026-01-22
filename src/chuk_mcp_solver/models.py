@@ -300,16 +300,21 @@ class NoOverlapParams(BaseModel):
 
 
 class ImplicationParams(BaseModel):
-    """Parameters for an implication constraint: if bool_var then nested_constraint."""
+    """Parameters for an implication constraint: if bool_var then referenced_constraint.
+
+    Instead of nesting constraints, this references another constraint by ID.
+    The referenced constraint must exist in the same constraints list.
+    """
 
     if_var: str = Field(
         ...,
-        description="Boolean variable: when true, the nested constraint must hold",
+        description="Boolean variable: when true, the referenced constraint must hold",
         min_length=1,
     )
-    then: Constraint = Field(
+    then_constraint_id: str = Field(
         ...,
-        description="Nested constraint that becomes active when if_var is true",
+        description="ID of another constraint that becomes active when if_var is true",
+        min_length=1,
     )
 
 
@@ -1482,3 +1487,7 @@ class SolveAssignmentProblemResponse(BaseModel):
         ...,
         description="Human-readable explanation",
     )
+
+
+# Note: ImplicationParams now uses constraint ID references instead of nested
+# constraints to avoid circular references in JSON Schema generation

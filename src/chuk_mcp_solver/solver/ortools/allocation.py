@@ -114,21 +114,29 @@ def convert_allocation_to_cpsat(
     # If item A depends on item B: select_A => select_B
     for item in request.items:
         for dep_id in item.dependencies:
+            # Create the linear constraint that will be referenced by the implication
+            then_constraint_id = f"then_select_{dep_id}_for_{item.id}"
+            constraints.append(
+                ConstraintModel(
+                    id=then_constraint_id,
+                    kind=ConstraintKind.LINEAR,
+                    params=LinearConstraintParams(
+                        terms=[LinearTerm(var=f"select_{dep_id}", coef=1)],
+                        sense=ConstraintSense.EQUAL,
+                        rhs=1,
+                    ),
+                    metadata={"description": f"Dependency target: select {dep_id}"},
+                )
+            )
+
+            # Create the implication constraint that references the linear constraint
             constraints.append(
                 ConstraintModel(
                     id=f"dependency_{item.id}_requires_{dep_id}",
                     kind=ConstraintKind.IMPLICATION,
                     params=ImplicationParams(
                         if_var=f"select_{item.id}",
-                        then=ConstraintModel(
-                            id=f"then_select_{dep_id}",
-                            kind=ConstraintKind.LINEAR,
-                            params=LinearConstraintParams(
-                                terms=[LinearTerm(var=f"select_{dep_id}", coef=1)],
-                                sense=ConstraintSense.EQUAL,
-                                rhs=1,
-                            ),
-                        ),
+                        then_constraint_id=then_constraint_id,  # Reference to the constraint above
                     ),
                     metadata={"description": f"Item {item.id} requires {dep_id}"},
                 )

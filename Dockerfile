@@ -16,17 +16,17 @@ RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# Install uv for fast dependency management
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+# Install uv for fast dependency management (fixed path)
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
+    echo "uv installed to /root/.local/bin"
 ENV PATH="/root/.local/bin:${PATH}"
 
 # Copy project configuration
 COPY pyproject.toml README.md ./
 COPY src ./src
 
-# Install the package with all dependencies
-# Use --no-cache to reduce layer size
-RUN uv pip install --system --no-cache -e .
+# Install the package with all dependencies using full path (force fresh install with 0.16.4)
+RUN /root/.local/bin/uv pip install --system --no-cache -e .
 
 # Runtime stage
 FROM python:3.11-slim
@@ -74,7 +74,7 @@ EXPOSE 8000
 # Labels for metadata
 LABEL maintainer="info@chuk.ai" \
       description="CHUK MCP Solver - General-purpose constraint and optimization solver" \
-      version="0.1.1" \
+      version="0.5.0" \
       org.opencontainers.image.source="https://github.com/chuk-ai/chuk-mcp-solver" \
       org.opencontainers.image.title="CHUK MCP Solver" \
       org.opencontainers.image.description="MCP server for constraint satisfaction and optimization using OR-Tools" \

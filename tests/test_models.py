@@ -1,8 +1,6 @@
 """Tests for Pydantic models and enums."""
 
 import pytest
-from pydantic import ValidationError
-
 from chuk_mcp_solver.models import (
     AllDifferentParams,
     BindingConstraint,
@@ -28,6 +26,7 @@ from chuk_mcp_solver.models import (
     VariableDomain,
     VariableDomainType,
 )
+from pydantic import ValidationError
 
 # ============================================================================
 # Enum Tests
@@ -436,17 +435,13 @@ def test_complete_optimization_request():
 
 
 def test_implication_constraint():
-    """Test implication constraint with nested linear constraint."""
+    """Test implication constraint with referenced linear constraint."""
     constraint = Constraint(
         id="impl",
         kind="implication",
         params={
             "if_var": "use_feature",
-            "then": {
-                "id": "cost_constraint",
-                "kind": "linear",
-                "params": {"terms": [{"var": "cost", "coef": 1}], "sense": ">=", "rhs": 10},
-            },
+            "then_constraint_id": "cost_constraint",  # Reference to another constraint by ID
         },
     )
 
@@ -454,4 +449,4 @@ def test_implication_constraint():
     # constraint.params is already an ImplicationParams model
     params: ImplicationParams = constraint.params  # type: ignore
     assert params.if_var == "use_feature"
-    assert params.then.kind == ConstraintKind.LINEAR
+    assert params.then_constraint_id == "cost_constraint"

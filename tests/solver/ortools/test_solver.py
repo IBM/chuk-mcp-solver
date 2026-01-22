@@ -1,7 +1,6 @@
 """Tests for OR-Tools solver implementation."""
 
 import pytest
-
 from chuk_mcp_solver.models import SolveConstraintModelRequest, SolverStatus
 from chuk_mcp_solver.solver.ortools import ORToolsSolver
 
@@ -176,21 +175,22 @@ async def test_implication_constraint():
         ],
         constraints=[
             {
+                "id": "cost_req",
+                "kind": "linear",
+                "params": {
+                    "terms": [{"var": "cost", "coef": 1}],
+                    "sense": ">=",
+                    "rhs": 10,
+                },
+            },
+            {
                 "id": "impl",
                 "kind": "implication",
                 "params": {
                     "if_var": "use_feature",
-                    "then": {
-                        "id": "cost_req",
-                        "kind": "linear",
-                        "params": {
-                            "terms": [{"var": "cost", "coef": 1}],
-                            "sense": ">=",
-                            "rhs": 10,
-                        },
-                    },
+                    "then_constraint_id": "cost_req",  # Reference to cost_req constraint
                 },
-            }
+            },
         ],
         objective={"sense": "min", "terms": [{"var": "cost", "coef": 1}]},
     )

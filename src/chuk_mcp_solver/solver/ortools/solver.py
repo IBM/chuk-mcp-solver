@@ -269,8 +269,25 @@ class ORToolsSolver(SolverProvider):
             request: The request containing constraint definitions.
             var_map: Mapping from variable ID to CP-SAT variable.
         """
+        # Build a constraints map for implication constraint lookups
+        constraints_map = {c.id: c for c in request.constraints}
+
+        # Find constraints that are referenced by implications (to avoid building them twice)
+        referenced_by_implications = set()
         for constraint in request.constraints:
-            build_constraint(model, constraint, var_map)
+            if constraint.kind == "implication":
+                from chuk_mcp_solver.models import ImplicationParams
+
+                params: ImplicationParams = constraint.params  # type: ignore[assignment]
+                referenced_by_implications.add(params.then_constraint_id)
+
+        for constraint in request.constraints:
+            # Skip constraints that are only referenced by implications
+            # (they will be built with OnlyEnforceIf by the implication)
+            if constraint.id in referenced_by_implications:
+                continue
+
+            build_constraint(model, constraint, var_map, constraints_map)
 
     def _convert_status(self, cp_status: int, mode: SolverMode) -> SolverStatus:
         """Convert CP-SAT status to SolverStatus.

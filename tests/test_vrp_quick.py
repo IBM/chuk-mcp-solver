@@ -1,7 +1,6 @@
 """Quick test for multi-vehicle VRP implementation."""
 
 import pytest
-
 from chuk_mcp_solver.server import solve_routing_problem
 
 

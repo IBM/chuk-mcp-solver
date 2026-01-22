@@ -1,7 +1,6 @@
 """Tests for edge cases and error handling in provider."""
 
 import pytest
-
 from chuk_mcp_solver.models import SolveConstraintModelRequest, SolverStatus
 from chuk_mcp_solver.solver.ortools import ORToolsSolver as ORToolsProvider
 
@@ -42,7 +41,7 @@ async def test_unsupported_constraint_kind():
 
 @pytest.mark.asyncio
 async def test_implication_with_non_linear_constraint_fails():
-    """Test that implication with non-linear nested constraint fails."""
+    """Test that implication with non-linear referenced constraint fails."""
     request = SolveConstraintModelRequest(
         mode="satisfy",
         variables=[
@@ -52,17 +51,18 @@ async def test_implication_with_non_linear_constraint_fails():
         ],
         constraints=[
             {
+                "id": "nested_all_diff",
+                "kind": "all_different",
+                "params": {"vars": ["y", "z"]},
+            },
+            {
                 "id": "impl",
                 "kind": "implication",
                 "params": {
                     "if_var": "x",
-                    "then": {
-                        "id": "nested_all_diff",
-                        "kind": "all_different",
-                        "params": {"vars": ["y", "z"]},
-                    },
+                    "then_constraint_id": "nested_all_diff",  # Reference to all_different constraint
                 },
-            }
+            },
         ],
     )
 

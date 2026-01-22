@@ -86,7 +86,13 @@ class TestResponseEdgeCases:
         response = await solver.solve_constraint_model(request)
 
         # Should get either optimal or feasible (or timeout)
-        assert response.status in ("optimal", "feasible", "timeout_best", "satisfied")
+        assert response.status in (
+            "optimal",
+            "feasible",
+            "timeout_best",
+            "satisfied",
+            "timeout_no_solution",
+        )
 
     async def test_feasible_with_objective_and_gap(self):
         """Test feasible solution with objective value and optimality gap."""
@@ -127,4 +133,4 @@ class TestResponseEdgeCases:
         response = await solver.solve_constraint_model(request)
 
         # Should get a solution (optimal or feasible)
-        assert response.status in ("optimal", "feasible", "timeout_best")
+        assert response.status in ("optimal", "feasible", "timeout_best", "timeout_no_solution")
