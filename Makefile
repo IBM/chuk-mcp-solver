@@ -93,7 +93,7 @@ dev-install:
 # Run tests
 test:
 	@echo "Running tests..."
-	@uv run pytest tests/ -v --tb=short -m "not network"
+	@python -m pytest tests/ -v --tb=short -m "not network"
 
 # Show current coverage report
 coverage-report:
@@ -104,13 +104,13 @@ coverage-report:
 # Run tests with coverage
 test-cov coverage:
 	@echo "Running tests with coverage..."
-	@uv run pytest tests/ --cov=src/chuk_mcp_solver --cov-report=xml --cov-report=html --cov-report=term --cov-fail-under=90 -m "not network"; \
+	@python -m pytest tests/ --cov=src/chuk_mcp_solver --cov-report=xml --cov-report=html --cov-report=term --cov-fail-under=90 -m "not network"; \
 	exit_code=$$?; \
 	echo ""; \
 	echo "=========================="; \
 	echo "Coverage Summary:"; \
 	echo "=========================="; \
-	uv run coverage report --omit="tests/*" | tail -5; \
+	python -m coverage report --omit="tests/*" | tail -5; \
 	echo ""; \
 	echo "HTML coverage report saved to: htmlcov/index.html"; \
 	exit $$exit_code
@@ -328,19 +328,19 @@ publish-manual: build
 # Check code quality
 lint:
 	@echo "Running linters..."
-	@uv run ruff check src/ tests/
-	@uv run ruff format --check src/ tests/
+	@python -m ruff check src/ tests/
+	@python -m ruff format --check src/ tests/
 
 # Fix code formatting
 format:
 	@echo "Formatting code..."
-	@uv run ruff format src/ tests/
-	@uv run ruff check --fix src/ tests/
+	@python -m ruff format src/ tests/
+	@python -m ruff check --fix src/ tests/
 
 # Type checking
 typecheck:
 	@echo "Running type checker..."
-	@uv run mypy src/
+	@python -m mypy src/
 
 # Security checks
 security:
