@@ -1,10 +1,10 @@
 # CHUK MCP Solver
 
 [![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![MCP](https://img.shields.io/badge/MCP-compatible-brightgreen.svg)](https://modelcontextprotocol.io)
-[![Tests](https://img.shields.io/badge/tests-246%20passed-success.svg)](tests/)
-[![Coverage](https://img.shields.io/badge/coverage-94%25-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/tests-260%20passed-success.svg)](#)
+[![Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen.svg)](#)
 
 🔧 **General-purpose constraint and optimization solver as an MCP server**
 
@@ -30,10 +30,10 @@ A powerful Model Context Protocol (MCP) server that provides constraint satisfac
 - Configuration optimization
 - Budget allocation
 
-🚀 **Production Ready**
+🚀 **Quality Assured**
 - Async/await native
 - Type-safe with Pydantic models
-- Comprehensive test coverage (>90%)
+- Comprehensive test coverage (95%)
 - Clean architecture with provider pattern
 - Configurable via environment or YAML
 
@@ -230,8 +230,7 @@ uv pip install chuk-mcp-solver
 ### Local Development
 
 ```bash
-# Clone and install
-git clone https://github.com/chuk-ai/chuk-mcp-solver.git
+# Navigate to project and install
 cd chuk-mcp-solver
 uv pip install -e ".[dev]"
 ```
@@ -1734,19 +1733,15 @@ Contributions welcome! Please:
 
 MIT License - see [LICENSE](LICENSE) for details.
 
-## Support
+## License
 
-- 📖 [Documentation](https://github.com/chuk-ai/chuk-mcp-solver#readme)
-- 🐛 [Issue Tracker](https://github.com/chuk-ai/chuk-mcp-solver/issues)
-- 💬 [Discussions](https://github.com/chuk-ai/chuk-mcp-solver/discussions)
+Apache License 2.0 - see [LICENSE](LICENSE) for details.
+
+> This is a demonstration project provided as-is for learning and testing purposes.
 
 ## Acknowledgments
 
 Built with:
 - [Google OR-Tools](https://developers.google.com/optimization) - CP-SAT solver
 - [Pydantic](https://pydantic.dev) - Data validation
-- [chuk-mcp-server](https://github.com/chuk-ai/chuk-mcp-server) - MCP framework
-
----
-
-Made with ❤️ by [CHUK AI](https://chuk.ai)
+- [Model Context Protocol](https://modelcontextprotocol.io/) - Protocol specification

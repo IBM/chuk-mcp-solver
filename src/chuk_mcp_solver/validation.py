@@ -5,7 +5,7 @@ LLMs and users fix modeling issues before solving.
 """
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import cast
 
 from chuk_mcp_solver.models import (
@@ -21,7 +21,7 @@ from chuk_mcp_solver.models import (
 )
 
 
-class ValidationSeverity(str, Enum):
+class ValidationSeverity(StrEnum):
     """Severity level of validation issue."""
 
     ERROR = "error"  # Must fix - will cause solve to fail

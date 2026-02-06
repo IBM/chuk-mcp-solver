@@ -9,14 +9,14 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 # Configure structured logger
 logger = logging.getLogger("chuk_mcp_solver")
 
 
-class SolveOutcome(str, Enum):
+class SolveOutcome(StrEnum):
     """Solver outcome for metrics tracking."""
 
     SUCCESS = "success"

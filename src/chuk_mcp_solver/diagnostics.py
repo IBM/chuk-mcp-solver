@@ -7,13 +7,13 @@ and explaining infeasibility.
 import hashlib
 import json
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 from chuk_mcp_solver.models import SolveConstraintModelRequest, SolverStatus
 from chuk_mcp_solver.observability import get_global_statistics
 
 
-class HealthStatus(str, Enum):
+class HealthStatus(StrEnum):
     """Health status of solver."""
 
     HEALTHY = "healthy"

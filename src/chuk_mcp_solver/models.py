@@ -7,7 +7,7 @@ No magic strings - all constants are defined as enums or module-level constants.
 from __future__ import annotations
 
 import logging
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
@@ -38,21 +38,21 @@ CONSTRAINT_KIND_NO_OVERLAP = "no_overlap"
 # ============================================================================
 
 
-class SolverMode(str, Enum):
+class SolverMode(StrEnum):
     """Solver execution mode."""
 
     SATISFY = "satisfy"
     OPTIMIZE = "optimize"
 
 
-class VariableDomainType(str, Enum):
+class VariableDomainType(StrEnum):
     """Variable domain types supported by the solver."""
 
     BOOL = "bool"
     INTEGER = "integer"
 
 
-class ConstraintSense(str, Enum):
+class ConstraintSense(StrEnum):
     """Comparison operators for linear constraints."""
 
     LESS_EQUAL = "<="
@@ -60,14 +60,14 @@ class ConstraintSense(str, Enum):
     EQUAL = "=="
 
 
-class ObjectiveSense(str, Enum):
+class ObjectiveSense(StrEnum):
     """Optimization direction."""
 
     MINIMIZE = "min"
     MAXIMIZE = "max"
 
 
-class ConstraintKind(str, Enum):
+class ConstraintKind(StrEnum):
     """Types of constraints supported by the solver."""
 
     LINEAR = CONSTRAINT_KIND_LINEAR
@@ -81,7 +81,7 @@ class ConstraintKind(str, Enum):
     NO_OVERLAP = CONSTRAINT_KIND_NO_OVERLAP
 
 
-class SolverStatus(str, Enum):
+class SolverStatus(StrEnum):
     """Solution status returned by the solver."""
 
     OPTIMAL = "optimal"
@@ -473,7 +473,7 @@ class Objective(BaseModel):
 # ============================================================================
 
 
-class SearchStrategy(str, Enum):
+class SearchStrategy(StrEnum):
     """Search strategy hint for the solver."""
 
     AUTO = "auto"  # Let solver decide
@@ -745,7 +745,7 @@ class Resource(BaseModel):
     )
 
 
-class SchedulingObjective(str, Enum):
+class SchedulingObjective(StrEnum):
     """Scheduling optimization objectives."""
 
     MINIMIZE_MAKESPAN = "minimize_makespan"  # Finish ASAP
@@ -1034,7 +1034,7 @@ class Vehicle(BaseModel):
     )
 
 
-class RoutingObjective(str, Enum):
+class RoutingObjective(StrEnum):
     """Routing optimization objectives."""
 
     MINIMIZE_DISTANCE = "minimize_distance"  # Minimize total distance
@@ -1250,7 +1250,7 @@ class BudgetConstraint(BaseModel):
     )
 
 
-class AllocationObjective(str, Enum):
+class AllocationObjective(StrEnum):
     """Budget allocation optimization objectives."""
 
     MAXIMIZE_VALUE = "maximize_value"
@@ -1434,7 +1434,7 @@ class AssignmentTask(BaseModel):
     )
 
 
-class AssignmentObjective(str, Enum):
+class AssignmentObjective(StrEnum):
     """Assignment optimization objectives."""
 
     MINIMIZE_COST = "minimize_cost"

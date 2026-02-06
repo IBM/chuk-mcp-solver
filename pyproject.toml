@@ -1,11 +1,10 @@
 [project]
 name = "chuk-mcp-solver"
-version = "0.5.2"
+version = "0.5.3"
 description = "General-purpose constraint and optimization solver MCP server"
 readme = "README.md"
-license = { text = "MIT" }
+license = { text = "Apache-2.0" }
 requires-python = ">=3.11"
-authors = [{ name = "CHUK AI", email = "chrishayuk@somejunkmailbox.com" }]
 keywords = [
     "mcp",
     "model-context-protocol",
@@ -17,7 +16,7 @@ keywords = [
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -40,12 +39,6 @@ dev = [
     "ruff>=0.2.0",
     "types-pyyaml>=6.0.0",
 ]
-
-[project.urls]
-Homepage = "https://github.com/chuk-ai/chuk-mcp-solver"
-Documentation = "https://github.com/chuk-ai/chuk-mcp-solver#readme"
-Repository = "https://github.com/chuk-ai/chuk-mcp-solver"
-Issues = "https://github.com/chuk-ai/chuk-mcp-solver/issues"
 
 [project.scripts]
 chuk-mcp-solver = "chuk_mcp_solver.server:main"
