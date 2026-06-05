@@ -23,7 +23,7 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-    "chuk-mcp-server>=0.16.5",
+    "chuk-mcp-server>=0.25.4",
     "httpx>=0.27.0",
     "pydantic>=2.0.0",
     "ortools>=9.10.0",
@@ -101,7 +101,8 @@ select = [
     "UP",  # pyupgrade
 ]
 ignore = [
-    "E501", # line too long, handled by formatter
+    "E501",  # line too long, handled by formatter
+    "UP042", # (str, Enum) is the deliberate fleet-wide pattern; StrEnum changes str() output
 ]
 
 [tool.ruff.format]

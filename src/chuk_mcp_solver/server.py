@@ -648,8 +648,10 @@ def main() -> None:
     if transport == "stdio":
         server.run(stdio=True)
     else:
-        # Bind to all interfaces for Docker containers
-        server.run(host="0.0.0.0", port=8000)  # nosec B104
+        # Bind to all interfaces for Docker containers; honor PORT (default 8000)
+        import os
+
+        server.run(host="0.0.0.0", port=int(os.environ.get("PORT", "8000")))  # nosec B104
 
 
 if __name__ == "__main__":
