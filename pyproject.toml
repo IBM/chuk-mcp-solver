@@ -23,7 +23,7 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-    "chuk-mcp-server>=0.25.4",
+    "chuk-mcp-server>=0.25.5",
     "httpx>=0.27.0",
     "pydantic>=2.0.0",
     "ortools>=9.10.0",
@@ -42,6 +42,17 @@ dev = [
 
 [project.scripts]
 chuk-mcp-solver = "chuk_mcp_solver.server:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=4.1.0",
+    "mypy>=1.8.0",
+    "ruff>=0.2.0",
+    "bandit>=1.7.0",
+    "types-pyyaml>=6.0.0",
+]
 
 [build-system]
 requires = ["hatchling"]
@@ -108,3 +119,7 @@ ignore = [
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+
+[tool.bandit]
+exclude_dirs = ["tests"]
+skips = ["B101", "B105", "B108", "B110"]
